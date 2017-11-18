@@ -13,7 +13,7 @@ before_deploy:
 
 deploy:
   provider: script
-  script: mvn clean deploy --settings .travis-ci/settings.xml -P release
+  script: mvn clean deploy --settings .travis-ci/settings.xml -P release -B -V
   skip_cleanup: true
   on:
     repo: hexagonoframework/hexagono-textparser
