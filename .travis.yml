@@ -1,1 +1,21 @@
 language: java
+
+jdk:
+  - oraclejdk8
+
+install: true
+
+test: mvn clean test -B -V
+
+before_deploy:
+  - openssl aes-256-cbc -pass pass:$ENCRYPTION_PASSWORD -in .travis-ci/pubring.gpg.enc -out .travis-ci/pubring.gpg -d
+  - openssl aes-256-cbc -pass pass:$ENCRYPTION_PASSWORD -in .travis-ci/secring.gpg.enc -out .travis-ci/secring.gpg -d
+
+deploy:
+  provider: script
+  script: mvn clean deploy --settings .travis-ci/settings.xml -P release
+  skip_cleanup: true
+  on:
+    repo: hexagonoframework/hexagono-textparser
+    branch: master
+    jdk: oraclejdk8
