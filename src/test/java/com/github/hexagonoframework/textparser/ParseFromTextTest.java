@@ -1,14 +1,20 @@
 package com.github.hexagonoframework.textparser;
 
+import static com.github.hexagonoframework.core.exception.Error.of;
+import static com.github.hexagonoframework.textparser.exception.TextParserErrorType.PARSE_CLASSE_ATRIBUTO_INVALIDO;
+import static com.github.hexagonoframework.textparser.exception.TextParserErrorType.PARSE_CLASSE_CONSTRUTOR_INVALIDO;
+import static com.github.hexagonoframework.textparser.exception.TextParserErrorType.PARSE_CLASSE_NULA;
+import static com.github.hexagonoframework.textparser.exception.TextParserErrorType.PARSE_CONVERTER_NAO_ENCONTRADO;
+import static com.github.hexagonoframework.textparser.exception.TextParserErrorType.PARSE_DADOS_VAZIO;
+import static com.github.hexagonoframework.textparser.exception.TextParserErrorType.PARSE_TAMANHO_DADOS_DIFERENTE_REGISTRO;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.catchThrowable;
 import static org.junit.Assert.assertNotNull;
 
-import com.github.hexagonoframework.textparser.exception.ParserErrorType;
-import com.github.hexagonoframework.textparser.exception.ParserException;
 import org.junit.Test;
 
-import com.github.hexagonoframework.textparser.exception.Error;
+import com.github.hexagonoframework.core.exception.Error;
+import com.github.hexagonoframework.textparser.exception.TextParserException;
 import com.github.hexagonoframework.textparser.registro.AtributoInvalidoRegistro;
 import com.github.hexagonoframework.textparser.registro.CampoIntegerRegistro;
 import com.github.hexagonoframework.textparser.registro.CampoLongRegistro;
@@ -18,7 +24,7 @@ import com.github.hexagonoframework.textparser.registro.CampoStringRegistro;
 import com.github.hexagonoframework.textparser.registro.ConstrutorInvalidoRegistro;
 import com.github.hexagonoframework.textparser.registro.TesteRegistro;
 
-public class ParserTest {
+public class ParseFromTextTest {
 
     private Class<?> clazz;
     private Throwable throwable;
@@ -29,22 +35,22 @@ public class ParserTest {
         clazz = null;
 
         // when
-        throwable = catchThrowable(() -> RegistroParser.toRegistro("A", clazz));
+        throwable = catchThrowable(() -> TextParser.fromText("A", clazz));
 
         // then
-        assertSameError(throwable, Error.of(ParserErrorType.ERR_PARSE_CLASSE_NULA));
+        assertSameError(throwable, of(PARSE_CLASSE_NULA));
     }
-    
+
     @Test
     public void deveFalharQuandoDadosNull() {
         // given
         clazz = TesteRegistro.class;
 
         // when
-        throwable = catchThrowable(() -> RegistroParser.toRegistro(null, clazz));
+        throwable = catchThrowable(() -> TextParser.fromText(null, clazz));
 
         // then
-        assertSameError(throwable, Error.of(ParserErrorType.ERR_PARSE_DADOS_VAZIO));
+        assertSameError(throwable, of(PARSE_DADOS_VAZIO));
     }
 
     @Test
@@ -53,10 +59,10 @@ public class ParserTest {
         clazz = TesteRegistro.class;
 
         // when
-        throwable = catchThrowable(() -> RegistroParser.toRegistro("", clazz));
+        throwable = catchThrowable(() -> TextParser.fromText("", clazz));
 
         // then
-        assertSameError(throwable, Error.of(ParserErrorType.ERR_PARSE_DADOS_VAZIO));
+        assertSameError(throwable, of(PARSE_DADOS_VAZIO));
     }
 
     @Test
@@ -66,11 +72,11 @@ public class ParserTest {
         clazz = TesteRegistro.class;
 
         // when
-        throwable = catchThrowable(() -> RegistroParser.toRegistro(dados, clazz));
+        throwable = catchThrowable(() -> TextParser.fromText(dados, clazz));
 
         // then
         assertSameError(throwable,
-                Error.of(ParserErrorType.ERR_PARSE_TAMANHO_DADOS_DIFERENTE_REGISTRO, dados.length(), TesteRegistro.CAMPO.length()));
+                of(PARSE_TAMANHO_DADOS_DIFERENTE_REGISTRO, dados.length(), TesteRegistro.CAMPO.length()));
     }
 
     @Test
@@ -79,7 +85,7 @@ public class ParserTest {
         String dados = "A";
 
         // when
-        CampoStringRegistro registro = RegistroParser.toRegistro(dados,  CampoStringRegistro.class);
+        CampoStringRegistro registro = TextParser.fromText(dados, CampoStringRegistro.class);
 
         // then
         assertNotNull(registro);
@@ -92,7 +98,7 @@ public class ParserTest {
         String dados = "12";
 
         // when
-        CampoIntegerRegistro registro = RegistroParser.toRegistro(dados,  CampoIntegerRegistro.class);
+        CampoIntegerRegistro registro = TextParser.fromText(dados, CampoIntegerRegistro.class);
 
         // then
         assertNotNull(registro);
@@ -106,66 +112,66 @@ public class ParserTest {
         String dados = "12";
 
         // when
-        CampoLongRegistro registro = RegistroParser.toRegistro(dados,  CampoLongRegistro.class);
+        CampoLongRegistro registro = TextParser.fromText(dados, CampoLongRegistro.class);
 
         // then
         assertNotNull(registro);
         assertThat(registro.campo1).isEqualTo(1);
         assertThat(registro.campo2).isEqualTo(2);
     }
-    
+
     @Test
     public void deveConverterCampoRegistro() {
         // given
         String dados = "AB";
 
         // when
-        CampoRegistro registro = RegistroParser.toRegistro(dados,  CampoRegistro.class);
+        CampoRegistro registro = TextParser.fromText(dados, CampoRegistro.class);
 
         // then
         assertNotNull(registro);
         assertThat(registro.campoRegistro.campo).isEqualTo("A");
         assertThat(registro.campo).isEqualTo("B");
     }
-    
+
     @Test
     public void deveFalharQuandoConversaoNaoSuportada() {
-    	// given
-    	clazz = CampoObjectRegistro.class;
-    	
-    	// when
-        throwable = catchThrowable(() -> RegistroParser.toRegistro("A", clazz));
+        // given
+        clazz = CampoObjectRegistro.class;
+
+        // when
+        throwable = catchThrowable(() -> TextParser.fromText("A", clazz));
 
         // then
-        assertSameError(throwable, Error.of(ParserErrorType.ERR_PARSE_CONVERTER_NAO_ENCONTRADO, Object.class.getName()));
+        assertSameError(throwable, of(PARSE_CONVERTER_NAO_ENCONTRADO, Object.class.getName()));
     }
-    
+
     @Test
     public void deveFalharQuandoConstrutorInvalido() {
-    	// given
-    	clazz = ConstrutorInvalidoRegistro.class;
-    	
-    	// when
-        throwable = catchThrowable(() -> RegistroParser.toRegistro("A", clazz));
+        // given
+        clazz = ConstrutorInvalidoRegistro.class;
+
+        // when
+        throwable = catchThrowable(() -> TextParser.fromText("A", clazz));
 
         // then
-        assertSameError(throwable, Error.of(ParserErrorType.ERR_PARSE_CLASSE_CONSTRUTOR_INVALIDO, clazz.getName()));
+        assertSameError(throwable, of(PARSE_CLASSE_CONSTRUTOR_INVALIDO, clazz.getName()));
     }
-    
+
     @Test
     public void deveFalharQuandoAtributoInvalido() {
         // given
         clazz = AtributoInvalidoRegistro.class;
 
         // when
-        throwable = catchThrowable(() -> RegistroParser.toRegistro("A", clazz));
+        throwable = catchThrowable(() -> TextParser.fromText("A", clazz));
 
         // then
-        assertSameError(throwable, Error.of(ParserErrorType.ERR_PARSE_CLASSE_ATRIBUTO_INVALIDO, "campo", clazz.getName()));
+        assertSameError(throwable, of(PARSE_CLASSE_ATRIBUTO_INVALIDO, "campo", clazz.getName()));
     }
 
     private void assertSameError(Throwable throwable, Error error) {
-        assertThat(throwable).isInstanceOf(ParserException.class);
-        assertThat(((ParserException) throwable).getError()).isEqualTo(error);
+        assertThat(throwable).isInstanceOf(TextParserException.class);
+        assertThat(((TextParserException) throwable).getError()).isEqualTo(error);
     }
 }

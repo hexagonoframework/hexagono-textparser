@@ -1,16 +1,16 @@
 package com.github.hexagonoframework.textparser;
 
-import com.github.hexagonoframework.textparser.converter.IntegerTypeConverter;
-import com.github.hexagonoframework.textparser.converter.StringTypeConverter;
-import com.github.hexagonoframework.textparser.annotation.Registro;
-import com.github.hexagonoframework.textparser.converter.LongTypeConverter;
-import com.github.hexagonoframework.textparser.exception.ParserException;
+import static com.github.hexagonoframework.core.exception.Error.of;
+import static com.github.hexagonoframework.textparser.exception.TextParserErrorType.PARSE_CONVERTER_NAO_ENCONTRADO;
+import static com.github.hexagonoframework.textparser.exception.TextParserErrorType.PARSE_REGISTRO_CAMPO_VALOR;
 
 import java.util.Map.Entry;
 
-import static com.github.hexagonoframework.textparser.exception.Error.of;
-import static com.github.hexagonoframework.textparser.exception.ParserErrorType.ERR_PARSE_CONVERTER_NAO_ENCONTRADO;
-import static com.github.hexagonoframework.textparser.exception.ParserErrorType.ERR_PARSE_REGISTRO_CAMPO_VALOR;
+import com.github.hexagonoframework.textparser.annotation.Registro;
+import com.github.hexagonoframework.textparser.converter.IntegerTypeConverter;
+import com.github.hexagonoframework.textparser.converter.LongTypeConverter;
+import com.github.hexagonoframework.textparser.converter.StringTypeConverter;
+import com.github.hexagonoframework.textparser.exception.TextParserException;
 
 class ObjectParser<T> {
 
@@ -38,7 +38,7 @@ class ObjectParser<T> {
 		try {
 			value = campoInfo.getField().get(registro);
 		} catch (IllegalArgumentException | IllegalAccessException e) {
-			throw new ParserException(of(ERR_PARSE_REGISTRO_CAMPO_VALOR, campoInfo.getField().getName(),
+			throw new TextParserException(of(PARSE_REGISTRO_CAMPO_VALOR, campoInfo.getField().getName(),
 					registro.getClass().getName()), e);
 		}
 		
@@ -55,9 +55,9 @@ class ObjectParser<T> {
         }
         
         if (campoClass.isAnnotationPresent(Registro.class)) {
-        	return RegistroParser.fromRegistro(value);
+        	return TextParser.toText(value);
 		}
         
-        throw new ParserException(of(ERR_PARSE_CONVERTER_NAO_ENCONTRADO, campoClass.getName()));
+        throw new TextParserException(of(PARSE_CONVERTER_NAO_ENCONTRADO, campoClass.getName()));
 	}
 }

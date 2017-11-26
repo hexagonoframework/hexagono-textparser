@@ -1,19 +1,19 @@
 package com.github.hexagonoframework.textparser;
 
-import static com.github.hexagonoframework.textparser.exception.Error.of;
-import static com.github.hexagonoframework.textparser.exception.ParserErrorType.ERR_PARSE_CLASSE_ATRIBUTO_INVALIDO;
-import static com.github.hexagonoframework.textparser.exception.ParserErrorType.ERR_PARSE_CLASSE_CONSTRUTOR_INVALIDO;
-import static com.github.hexagonoframework.textparser.exception.ParserErrorType.ERR_PARSE_CONVERTER_NAO_ENCONTRADO;
-import static com.github.hexagonoframework.textparser.exception.ParserErrorType.ERR_PARSE_DADOS_VAZIO;
-import static com.github.hexagonoframework.textparser.exception.ParserErrorType.ERR_PARSE_TAMANHO_DADOS_DIFERENTE_REGISTRO;
+import static com.github.hexagonoframework.core.exception.Error.of;
+import static com.github.hexagonoframework.textparser.exception.TextParserErrorType.PARSE_CLASSE_ATRIBUTO_INVALIDO;
+import static com.github.hexagonoframework.textparser.exception.TextParserErrorType.PARSE_CLASSE_CONSTRUTOR_INVALIDO;
+import static com.github.hexagonoframework.textparser.exception.TextParserErrorType.PARSE_CONVERTER_NAO_ENCONTRADO;
+import static com.github.hexagonoframework.textparser.exception.TextParserErrorType.PARSE_DADOS_VAZIO;
+import static com.github.hexagonoframework.textparser.exception.TextParserErrorType.PARSE_TAMANHO_DADOS_DIFERENTE_REGISTRO;
 
 import java.util.Map.Entry;
 
-import com.github.hexagonoframework.textparser.converter.IntegerTypeConverter;
-import com.github.hexagonoframework.textparser.converter.StringTypeConverter;
 import com.github.hexagonoframework.textparser.annotation.Registro;
+import com.github.hexagonoframework.textparser.converter.IntegerTypeConverter;
 import com.github.hexagonoframework.textparser.converter.LongTypeConverter;
-import com.github.hexagonoframework.textparser.exception.ParserException;
+import com.github.hexagonoframework.textparser.converter.StringTypeConverter;
+import com.github.hexagonoframework.textparser.exception.TextParserException;
 
 class StringParser<T> {
 
@@ -34,7 +34,7 @@ class StringParser<T> {
 		try {
 			object = (T) registroInfo.getRegistroClass().newInstance();
 		} catch (InstantiationException | IllegalAccessException e) {
-			throw new ParserException(of(ERR_PARSE_CLASSE_CONSTRUTOR_INVALIDO, registroInfo.getRegistroClass().getName()), e);
+			throw new TextParserException(of(PARSE_CLASSE_CONSTRUTOR_INVALIDO, registroInfo.getRegistroClass().getName()), e);
 		}
         
 		Class<T> newClass = (Class<T>) object.getClass();
@@ -46,7 +46,7 @@ class StringParser<T> {
             try {
 				newClass.getField(campo.getField().getName()).set(object, value);
 			} catch (IllegalArgumentException | IllegalAccessException | NoSuchFieldException | SecurityException e) {
-				throw new ParserException(of(ERR_PARSE_CLASSE_ATRIBUTO_INVALIDO, campo.getField().getName(),
+				throw new TextParserException(of(PARSE_CLASSE_ATRIBUTO_INVALIDO, campo.getField().getName(),
 						registroInfo.getRegistroClass().getName()), e);
 			}
         }
@@ -55,12 +55,12 @@ class StringParser<T> {
     }
 
     private void assertDadosIsNotEmpty() {
-        if (null == dados || "".equals(dados)) throw new ParserException(of(ERR_PARSE_DADOS_VAZIO));
+        if (null == dados || "".equals(dados)) throw new TextParserException(of(PARSE_DADOS_VAZIO));
     }
 
     private void assertTamanhoDadosIgualTamanhoRegistro() {
         if (dados.length() != registroInfo.getTamanhoTotal()) {
-            throw new ParserException(of(ERR_PARSE_TAMANHO_DADOS_DIFERENTE_REGISTRO, dados.length(), registroInfo.getTamanhoTotal()));
+            throw new TextParserException(of(PARSE_TAMANHO_DADOS_DIFERENTE_REGISTRO, dados.length(), registroInfo.getTamanhoTotal()));
         }
     }
 
@@ -79,9 +79,9 @@ class StringParser<T> {
         }
         
         if (clazz.isAnnotationPresent(Registro.class)) {
-        	return (T) RegistroParser.toRegistro(substring, clazz);
+        	return (T) TextParser.fromText(substring, clazz);
         }
 
-        throw new ParserException(of(ERR_PARSE_CONVERTER_NAO_ENCONTRADO, clazz.getName()));
+        throw new TextParserException(of(PARSE_CONVERTER_NAO_ENCONTRADO, clazz.getName()));
     }
 }

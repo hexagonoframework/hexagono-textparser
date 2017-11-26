@@ -15,7 +15,7 @@
             <id>release</id>
             <properties>
                 <gpg.executable>gpg</gpg.executable>
-                <gpg.keyname>${env.GPG_KEYNAME}</gpg.keyname>
+                <gpg.keyname>948C64CF</gpg.keyname>
                 <gpg.passphrase>${env.GPG_PASSPHRASE}</gpg.passphrase>
                 <gpg.defaultKeyring>false</gpg.defaultKeyring>
                 <gpg.publicKeyring>.travis-ci/pubring.gpg</gpg.publicKeyring>
