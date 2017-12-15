@@ -6,6 +6,7 @@ import static com.github.hexagonoframework.textparser.exception.TextParserErrorT
 
 import java.util.Map.Entry;
 
+import com.github.hexagonoframework.textparser.annotation.Campo;
 import com.github.hexagonoframework.textparser.annotation.Registro;
 import com.github.hexagonoframework.textparser.converter.IntegerTypeConverter;
 import com.github.hexagonoframework.textparser.converter.LongTypeConverter;
@@ -34,6 +35,7 @@ class ObjectParser<T> {
 
 	private String getValue(CampoInfo campoInfo) {
 		Class<?> campoClass = campoInfo.getField().getType();
+		Campo annotationCampo = campoInfo.getField().getAnnotation(Campo.class);
 		Object value;
 		try {
 			value = campoInfo.getField().get(registro);
@@ -42,21 +44,23 @@ class ObjectParser<T> {
 					registro.getClass().getName()), e);
 		}
 		
+		if (campoClass.isAnnotationPresent(Registro.class)) {
+            return TextParser.toText(value);
+        }
+		
+		
+		
 		if (String.class.equals(campoClass)) {
-            return new StringTypeConverter().getAsString((String) value);
+            return new StringTypeConverter(annotationCampo).getAsString((String) value);
         }
 
         if (Integer.class.equals(campoClass) || campoClass.isAssignableFrom(Integer.TYPE)) {
-            return new IntegerTypeConverter().getAsString((Integer) value);
+            return new IntegerTypeConverter(annotationCampo).getAsString((Integer) value);
         }
 
         if (Long.class.equals(campoClass) || campoClass.isAssignableFrom(Long.TYPE)) {
-        	return new LongTypeConverter().getAsString((Long) value);
+        	return new LongTypeConverter(annotationCampo).getAsString((Long) value);
         }
-        
-        if (campoClass.isAnnotationPresent(Registro.class)) {
-        	return TextParser.toText(value);
-		}
         
         throw new TextParserException(of(PARSE_CONVERTER_NAO_ENCONTRADO, campoClass.getName()));
 	}
